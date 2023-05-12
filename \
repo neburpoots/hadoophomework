@@ -35,7 +35,7 @@ class NoRatings(MRJob):
            else:
                yield country, float(string)
 
-   def convert_to_suffix(self, number):
+   def convert_to_suffix(number):
        for suffix, mag in [("", 1), ("K", 1000), ("M", 1000000), ("B", 1000000000), ("T", 1000000000000)]:
            if abs(number) < mag * 1000:
                return "{:.1f}{}".format(number / mag, suffix)
@@ -44,8 +44,8 @@ class NoRatings(MRJob):
 #Reducer function
    def reducer_count_ratings(self, key, values):
        number = sum(values)
-       print(number)
-       yield key, self.convert_to_suffix(number)
+
+       yield key, convert_to_suffix(number)
 
 if __name__ == "__main__":
     NoRatings.run()
