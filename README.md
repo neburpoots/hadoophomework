@@ -1,4 +1,4 @@
-# Haddop homework
+# Hadoop homework
 ## The contracts.py is the first assignment
 
 ## The totalvalue.py is the second assignment
