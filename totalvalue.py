@@ -1,0 +1,50 @@
+
+from mrjob.job import MRJob
+from mrjob.step import MRStep
+import csv
+import re
+#split by ,
+columns = ',ID,Name,Age,Photo,Nationality,Flag,Overall,Potential,Club,Club Logo,Value,Wage,Special,Preferred Foot,International Reputation,Weak Foot,Skill Moves,Work Rate,Body Type,Real Face,Position,Jersey Number,Joined,Loaned From,Contract Valid Until,Height,Weight,LS,ST,RS,LW,LF,CF,RF,RW,LAM,CAM,RAM,LM,LCM,CM,RCM,RM,LWB,LDM,CDM,RDM,RWB,LB,LCB,CB,RCB,RB,Crossing,Finishing,HeadingAccuracy,ShortPassing,Volleys,Dribbling,Curve,FKAccuracy,LongPassing,BallControl,Acceleration,SprintSpeed,Agility,Reactions,Balance,ShotPower,Jumping,Stamina,Strength,LongShots,Aggression,Interceptions,Positioning,Vision,Penalties,Composure,Marking,StandingTackle,SlidingTackle,GKDiving,GKHandling,GKKicking,GKPositioning,GKReflexes,Release Clause'.split(',')
+
+class NoRatings(MRJob):
+   def steps(self):
+        return[
+            MRStep(mapper=self.mapper_get_ratings,
+                  reducer=self.reducer_count_ratings)
+        ]
+#Mapper function 
+   def mapper_get_ratings(self, _, line):
+       reader = csv.reader([line])
+       for row in reader:
+           zipped=zip(columns,row)
+
+           diction=dict(zipped)
+
+           country=diction['Nationality']
+
+	   value=diction['Value']
+
+           if value == 'Value':
+               continue
+
+	   string=value[3:]
+
+  	   suffixes = {"K": 1000, "M": 1000000, "B": 1000000000, "T": 1000000000000}
+           if string[-1] in suffixes:
+               yield country, float(string[:-1]) * suffixes[string[-1]]
+           else:
+               yield country, float(string)
+
+#Reducer function
+   def reducer_count_ratings(self, key, values):
+       number = sum(values)
+
+       for suffix, mag in [("", 1), ("K", 1000), ("M", 1000000), ("B", 1000000000), ("T", 1000000000000)]:
+           if abs(number) < mag * 1000:
+               string = "{:.1f}{}".format(number / mag, suffix)
+
+
+       yield key, string
+
+if __name__ == "__main__":
+    NoRatings.run()
